@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Products - anyone can read, only authenticated users can write
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Orders - users can only access their own orders
+    match /orders/{orderId} {
+      allow read, write: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+    }
+    
+    // Reviews - anyone can read, authenticated users can write
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Categories - anyone can read, only authenticated users can write
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Users - users can only access their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && 
+        request.auth.uid == userId;
+    }
+    
+    // Settings - only authenticated users can read/write
+    match /settings/{settingId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Admin settings - only admin users can access
+    match /admin/{document=**} {
+      allow read, write: if request.auth != null && 
+        request.auth.token.admin == true;
+    }
+  }
+} 

@@ -1,0 +1,4010 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ফ্যাশন ফ্লো - আপনার স্টাইলের সঙ্গী">
+    <title id="site-title">ফ্যাশন ফ্লো</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDTGUWQZghHRwNy6KN438pHUF16CEH4gzI",
+            authDomain: "fashionflow-ae3c0.firebaseapp.com",
+            databaseURL: "https://fashionflow-ae3c0-default-rtdb.firebaseio.com",
+            projectId: "fashionflow-ae3c0",
+            storageBucket: "fashionflow-ae3c0.firebasestorage.app",
+            messagingSenderId: "945995719833",
+            appId: "1:945995719833:web:44c61d8acef67858f20408",
+            measurementId: "G-6PSNSQSVPB"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const storage = getStorage(app);
+
+        // Make Firebase available globally
+        window.firebase = { app, analytics, db, auth, storage };
+        window.firebaseServices = { 
+            getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy, where,
+            getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+            getStorage, ref, uploadBytes, getDownloadURL
+        };
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans Bengali', sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo h1 {
+            font-size: 2rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .logo p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .nav {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .nav a:hover, .nav a.admin-btn, .nav a.cart-btn {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+        }
+
+        .cart-btn {
+            position: relative;
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .mobile-menu {
+            display: none;
+            cursor: pointer;
+        }
+
+        .mobile-nav {
+            display: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            flex-direction: column;
+            padding: 1rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .mobile-nav.active {
+            display: flex;
+        }
+
+        .mobile-nav a {
+            color: white;
+            text-decoration: none;
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* Pages */
+        .page {
+            display: none;
+            min-height: calc(100vh - 80px);
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Hero Section - Enhanced Banner */
+        .hero {
+            display: flex;
+            align-items: center;
+            min-height: 90vh;
+            position: relative;
+            padding: 4rem 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        }
+
+        .hero .container {
+            display: flex;
+            align-items: center;
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .hero-content {
+            flex: 1;
+            z-index: 2;
+            position: relative;
+            padding-right: 3rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero-content h2 {
+            font-size: 4.5rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.15);
+            line-height: 1.1;
+            background: linear-gradient(135deg, #2c3e50 0%, #667eea 50%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+
+        .hero-content p {
+            font-size: 1.6rem;
+            margin-bottom: 2.5rem;
+            color: #2c3e50;
+            line-height: 1.7;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.08);
+            font-weight: 400;
+            opacity: 0.9;
+        }
+
+        .cta-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1.8rem 3.5rem;
+            font-size: 1.4rem;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+            font-weight: 700;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .cta-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s;
+        }
+
+        .cta-btn:hover::before {
+            left: 100%;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.7);
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        }
+
+        .hero-background {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 65%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%);
+            border-radius: 60px 0 0 60px;
+            z-index: 1;
+            box-shadow: inset -15px 0 40px rgba(102, 126, 234, 0.15);
+            backdrop-filter: blur(15px);
+            animation: slideInRight 1.2s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .hero-image {
+            position: absolute;
+            top: 50%;
+            right: 3%;
+            transform: translateY(-50%);
+            width: 55%;
+            height: 85%;
+            border-radius: 35px;
+            overflow: hidden;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.2);
+            z-index: 2;
+            border: 4px solid rgba(255, 255, 255, 0.4);
+            animation: slideInRight 1.5s ease-out;
+        }
+
+        .hero-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+            filter: brightness(1.1) contrast(1.15) saturate(1.1);
+        }
+
+        .hero-image:hover img {
+            transform: scale(1.08);
+        }
+
+        .hero-image:hover {
+            box-shadow: 0 40px 90px rgba(0,0,0,0.3);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Mobile responsive for hero */
+        @media (max-width: 768px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+                min-height: 70vh;
+                padding: 2rem 0;
+            }
+
+            .hero .container {
+                flex-direction: column;
+            }
+
+            .hero-content {
+                padding-right: 0;
+                margin-bottom: 2rem;
+            }
+
+            .hero-content h2 {
+                font-size: 3rem;
+                line-height: 1.2;
+            }
+
+            .hero-content p {
+                font-size: 1.3rem;
+            }
+
+            .hero-background {
+                display: none;
+            }
+
+            .hero-image {
+                position: relative;
+                width: 100%;
+                height: 350px;
+                margin-top: 2rem;
+                right: auto;
+                transform: none;
+                border-radius: 25px;
+            }
+        }
+
+        /* Product Search Box */
+        .product-search-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin: 2rem 0;
+        }
+
+        .product-search-box {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .product-search-box input {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid #ffeef8;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .product-search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .clear-search-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 1rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .clear-search-btn:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        /* Featured Products */
+        .featured-products, .models-section {
+            padding: 4rem 0;
+            background: white;
+            margin: 2rem 0;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .featured-products h2, .models-section h2 {
+            text-align: center;
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+        }
+
+        /* Products Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .product-card img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+
+        .product-info {
+            padding: 1.5rem;
+        }
+
+        .product-info h3 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .product-info .price {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #764ba2;
+            margin-bottom: 1rem;
+        }
+
+        .product-info p {
+            color: #34495e;
+            margin-bottom: 1rem;
+        }
+
+        .product-id {
+            font-size: 0.9rem;
+            color: #999;
+            margin-bottom: 0.5rem;
+        }
+
+        .order-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .order-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .add-to-cart-btn {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .add-to-cart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+        }
+
+        /* Cart Styles */
+        .cart-modal {
+            padding: 1rem;
+        }
+
+        .cart-items {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .cart-item-info h4 {
+            margin: 0 0 0.5rem 0;
+            color: #667eea;
+        }
+
+        .cart-item-info p {
+            margin: 0;
+            color: #666;
+        }
+
+        .cart-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .cart-item-actions button {
+            background: #667eea;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .cart-item-actions .remove-btn {
+            background: #e74c3c;
+            width: auto;
+            padding: 0.5rem 1rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+
+        .cart-total {
+            text-align: center;
+            padding: 1rem;
+            background: #667eea;
+            color: white;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .cart-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .cart-actions .order-btn {
+            flex: 2;
+        }
+
+        .cart-actions .clear-btn {
+            flex: 1;
+            background: #6c757d;
+        }
+
+        .cart-actions .clear-btn:hover {
+            background: #5a6268;
+        }
+
+        .product-detail-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .product-detail-actions .cta-btn {
+            flex: 2;
+        }
+
+        .product-detail-actions .add-to-cart-btn {
+            flex: 1;
+        }
+
+        /* Category Filter */
+        .category-filter {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn.active, .filter-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Models Grid */
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .model-card {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .model-card:hover {
+            transform: scale(1.05);
+        }
+
+        .model-card img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+
+        /* Enhanced Contact Page */
+        .contact-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .contact-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .contact-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .contact-card i {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .contact-card h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .contact-card a {
+            color: #764ba2;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        /* Order Form */
+        .order-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-top: 3rem;
+        }
+
+        .order-form h2 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .order-form form {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .order-form input, .order-form textarea {
+            padding: 1rem;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+
+        .order-form input:focus, .order-form textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .order-form button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+
+        /* Search Results */
+        .search-results-info {
+            background: #e8f5e8;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        .no-results {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #667eea;
+        }
+
+        /* Admin Dashboard */
+        .admin-panel {
+            display: none;
+            background: #f8f9fa;
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+
+        .admin-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-header button {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+        }
+
+        .admin-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 1rem 2rem;
+            cursor: pointer;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active, .tab-btn:hover {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .admin-tab {
+            display: none;
+            padding: 2rem;
+        }
+
+        .admin-tab.active {
+            display: block;
+        }
+
+        .admin-section {
+            background: white;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .admin-form {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .admin-form input, .admin-form select, .admin-form textarea {
+            padding: 0.8rem;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        .admin-form input:focus, .admin-form select:focus, .admin-form textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .admin-form button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .admin-form button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Product List in Admin */
+        .admin-product-item {
+            background: #f8f9fa;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-product-info h4 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-product-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .admin-product-actions button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .edit-btn {
+            background: #007bff;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .edit-btn:hover, .delete-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Product Detail Page */
+        .product-detail {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin: 2rem 0;
+        }
+
+        .product-detail-image img {
+            width: 100%;
+            height: 500px;
+            object-fit: cover;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .product-detail-info {
+            padding: 2rem;
+        }
+
+        .product-detail-info h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .product-detail-info .price {
+            font-size: 2rem;
+            color: #764ba2;
+            font-weight: bold;
+            margin-bottom: 2rem;
+        }
+
+        .product-detail-info .description {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+            color: #34495e;
+        }
+
+        .product-features {
+            margin-bottom: 2rem;
+        }
+
+        .product-features h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .product-features ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .product-features li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+            color: #34495e;
+        }
+
+        .product-delivery-info {
+            margin-bottom: 2rem;
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .product-delivery-info h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .delivery-item {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #e9ecef;
+            color: #34495e;
+            line-height: 1.6;
+        }
+
+        .delivery-item:last-child {
+            border-bottom: none;
+        }
+
+        .delivery-item strong {
+            color: #495057;
+            display: inline-block;
+            min-width: 150px;
+        }
+        
+        /* Textarea styling for delivery options */
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        /* Preserve line breaks in delivery options display */
+        .delivery-item:last-child {
+            white-space: pre-line;
+        }
+
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-bottom: 2rem;
+        }
+
+        /* Search Box */
+        .search-box {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 0.8rem;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+
+        .search-box button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* Category Management */
+        .category-management {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .category-item button {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Messages */
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .nav {
+                display: none;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+
+            .hero {
+                grid-template-columns: 1fr;
+                text-align: center;
+                min-height: 60vh;
+            }
+
+            .hero-content h2 {
+                font-size: 2.5rem;
+            }
+
+            .hero-background {
+                display: none;
+            }
+
+            .hero-image {
+                position: relative;
+                width: 100%;
+                height: 300px;
+                margin-top: 2rem;
+                right: auto;
+                transform: none;
+            }
+
+            .product-detail {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-tabs {
+                flex-direction: column;
+            }
+
+            .search-box, .product-search-box {
+                flex-direction: column;
+            }
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .hero-content {
+            animation: slideInLeft 1s ease-out;
+        }
+
+        .hero-image {
+            animation: slideInRight 1s ease-out 0.3s both;
+        }
+
+        /* Customer Reviews Styles */
+        .reviews-section {
+            margin-top: 3rem;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .reviews-section h2 {
+            color: #2c3e50;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .review-form {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.1);
+        }
+
+        .review-form h3 {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+        }
+
+        .review-form input,
+        .review-form textarea {
+            width: 100%;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .review-form input:focus,
+        .review-form textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .review-form textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .rating-input {
+            margin-bottom: 1rem;
+        }
+
+        .rating-input label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .stars {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .stars i {
+            font-size: 1.5rem;
+            color: #ddd;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .stars i:hover,
+        .stars i.active {
+            color: #ffd700;
+            transform: scale(1.1);
+        }
+
+        .review-form button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .review-form button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .reviews-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .review-item {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #667eea;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .reviewer-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .reviewer-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .reviewer-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .review-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .review-rating {
+            display: flex;
+            gap: 0.2rem;
+        }
+
+        .review-rating i {
+            color: #ffd700;
+            font-size: 1rem;
+        }
+
+        .review-comment {
+            color: #2c3e50;
+            line-height: 1.6;
+            margin-top: 1rem;
+        }
+
+        .delete-review-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .delete-review-btn:hover {
+            background: #c0392b;
+            transform: scale(1.05);
+        }
+
+        .no-reviews {
+            text-align: center;
+            color: #666;
+            padding: 2rem;
+            font-style: italic;
+        }
+
+        /* Admin Reviews Tab */
+        .admin-reviews-tab {
+            display: none;
+        }
+
+        .admin-reviews-tab.active {
+            display: block;
+        }
+
+        .review-admin-item {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #667eea;
+        }
+
+        .review-admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .review-product-info {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .reviews-section {
+                padding: 1rem;
+            }
+
+            .review-form {
+                padding: 1.5rem;
+            }
+
+            .review-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .stars i {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* Enhanced Mobile Responsive Design */
+        @media (max-width: 768px) {
+            /* Header Mobile */
+            .header .container {
+                padding: 0 15px;
+            }
+
+            .logo h1 {
+                font-size: 1.5rem;
+            }
+
+            .logo p {
+                font-size: 0.8rem;
+            }
+
+            /* Mobile Navigation */
+            .mobile-nav {
+                box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            }
+
+            .mobile-nav a {
+                padding: 1.2rem 1rem;
+                font-size: 1.1rem;
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+            }
+
+            /* Hero Section Mobile */
+            .hero {
+                min-height: 60vh;
+                padding: 1.5rem 0;
+            }
+
+            .hero-content h2 {
+                font-size: 2.2rem;
+                margin-bottom: 1rem;
+            }
+
+            .hero-content p {
+                font-size: 1.1rem;
+                margin-bottom: 2rem;
+            }
+
+            .cta-btn {
+                padding: 1.2rem 2.5rem;
+                font-size: 1.1rem;
+            }
+
+            /* Products Grid Mobile */
+            .products-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                padding: 0 15px;
+            }
+
+            .product-card {
+                margin: 0;
+            }
+
+            /* Product Detail Mobile */
+            .product-detail {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                padding: 1rem;
+            }
+
+            .product-images {
+                height: 300px;
+            }
+
+            .product-info h2 {
+                font-size: 1.8rem;
+            }
+
+            .product-price {
+                font-size: 1.5rem;
+            }
+
+            /* Admin Panel Mobile */
+            .admin-tabs {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .admin-tab {
+                padding: 1rem;
+                font-size: 1rem;
+            }
+
+            .admin-content {
+                padding: 1rem;
+            }
+
+            /* Forms Mobile */
+            .form-group {
+                margin-bottom: 1rem;
+            }
+
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                padding: 0.8rem;
+                font-size: 1rem;
+            }
+
+            /* Search Box Mobile */
+            .product-search-box {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .product-search-box input {
+                padding: 0.8rem;
+            }
+
+            .search-btn,
+            .clear-search-btn {
+                padding: 0.8rem 1.5rem;
+                font-size: 1rem;
+            }
+
+            /* Contact Page Mobile */
+            .contact-cards {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .contact-card {
+                padding: 1.5rem;
+            }
+
+            /* Order Form Mobile */
+            #order-form {
+                padding: 1.5rem;
+            }
+
+            #order-form input,
+            #order-form textarea {
+                padding: 0.8rem;
+                font-size: 1rem;
+            }
+
+            /* Reviews Mobile */
+            .review-item {
+                padding: 1rem;
+            }
+
+            .reviewer-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            /* Buttons Mobile */
+            button {
+                padding: 0.8rem 1.5rem;
+                font-size: 1rem;
+            }
+
+            /* Container Mobile */
+            .container {
+                padding: 0 15px;
+            }
+
+            /* Textarea Mobile */
+            textarea {
+                padding: 0.8rem;
+                font-size: 1rem;
+            }
+        }
+
+        /* Small Mobile Devices */
+        @media (max-width: 480px) {
+            .hero-content h2 {
+                font-size: 1.8rem;
+            }
+
+            .hero-content p {
+                font-size: 1rem;
+            }
+
+            .cta-btn {
+                padding: 1rem 2rem;
+                font-size: 1rem;
+            }
+
+            .product-card {
+                margin: 0 10px;
+            }
+
+            .admin-tab {
+                padding: 0.8rem;
+                font-size: 0.9rem;
+            }
+
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                padding: 0.7rem;
+                font-size: 0.9rem;
+            }
+
+            .contact-card {
+                padding: 1rem;
+            }
+
+            .review-item {
+                padding: 0.8rem;
+            }
+        }
+
+        /* Mobile Touch Improvements */
+        @media (max-width: 768px) {
+            /* Better touch targets */
+            button, 
+            .nav a, 
+            .mobile-nav a,
+            .admin-tab,
+            .product-card {
+                min-height: 44px;
+                min-width: 44px;
+            }
+
+            /* Prevent zoom on input focus */
+            input[type="text"],
+            input[type="email"],
+            input[type="tel"],
+            input[type="password"],
+            textarea,
+            select {
+                font-size: 16px !important;
+            }
+
+            /* Smooth scrolling for mobile */
+            html {
+                scroll-behavior: smooth;
+            }
+
+            /* Better mobile navigation */
+            .mobile-nav {
+                transition: all 0.3s ease;
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+
+            .mobile-nav.active {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            /* Mobile-friendly product cards */
+            .product-card {
+                transition: transform 0.2s ease;
+            }
+
+            .product-card:active {
+                transform: scale(0.98);
+            }
+
+            /* Mobile-friendly buttons */
+            .cta-btn:active,
+            button:active {
+                transform: scale(0.95);
+            }
+
+            /* Mobile cart styles */
+            .product-actions {
+                flex-direction: column;
+                gap: 0.8rem;
+            }
+
+            .product-detail-actions {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .cart-item {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .cart-item-actions {
+                justify-content: center;
+            }
+
+            .cart-actions {
+                flex-direction: column;
+                gap: 0.8rem;
+            }
+
+            /* Mobile-friendly forms */
+            .form-group {
+                position: relative;
+            }
+
+            .form-group input:focus,
+            .form-group textarea:focus,
+            .form-group select:focus {
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            }
+
+            /* Mobile-friendly search */
+            .product-search-container {
+                margin: 1rem 0;
+                padding: 1.5rem;
+            }
+
+            /* Mobile-friendly admin panel */
+            .admin-content {
+                overflow-x: auto;
+            }
+
+            /* Mobile-friendly tables */
+            table {
+                font-size: 0.9rem;
+            }
+
+            /* Mobile-friendly modals */
+            .modal {
+                padding: 1rem;
+            }
+
+            .modal-content {
+                margin: 10% auto;
+                width: 95%;
+                max-width: 500px;
+            }
+        }
+
+        /* Message Styles */
+        .success-message {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+            font-weight: 500;
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1 id="site-name">ফ্যাশন ফ্লো</h1>
+                <p id="site-slogan">আপনার স্টাইলের সঙ্গী</p>
+            </div>
+            <nav class="nav">
+                <a href="#home" onclick="showPage('home')">হোম</a>
+                <a href="#products" onclick="showPage('products')">পণ্য</a>
+                <a href="#contact" onclick="showPage('contact')">যোগাযোগ</a>
+                <a href="#" onclick="showCart()" class="cart-btn">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span id="cart-count" class="cart-count">0</span>
+                </a>
+                <a href="#admin" onclick="showAdminLogin()" class="admin-btn">অ্যাডমিন</a>
+            </nav>
+            <div class="mobile-menu">
+                <i class="fas fa-bars" onclick="toggleMobileMenu()"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Navigation -->
+    <div class="mobile-nav" id="mobile-nav">
+        <a href="#home" onclick="showPage('home'); toggleMobileMenu()">হোম</a>
+        <a href="#products" onclick="showPage('products'); toggleMobileMenu()">পণ্য</a>
+        <a href="#contact" onclick="showPage('contact'); toggleMobileMenu()">যোগাযোগ</a>
+        <a href="#" onclick="showCart(); toggleMobileMenu()">কার্ট</a>
+        <a href="#admin" onclick="showAdminLogin(); toggleMobileMenu()">অ্যাডমিন</a>
+    </div>
+
+    <!-- Home Page -->
+    <div id="home-page" class="page active">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h2 id="hero-welcome-text">স্বাগতম ফ্যাশন ফ্লো-তে</h2>
+                    <p>নতুন কালেকশন এখনই দেখুন এবং অর্ডার করুন। আমাদের এক্সক্লুসিভ ফ্যাশন আইটেমগুলো আপনাকে দেবে অনন্য স্টাইল।</p>
+                    <button onclick="showPage('products')" class="cta-btn">পণ্য দেখুন</button>
+                </div>
+                <div class="hero-background"></div>
+                <div class="hero-image">
+                    <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" alt="ফ্যাশন মডেল">
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Products -->
+        <section class="featured-products">
+            <div class="container">
+                <h2>জনপ্রিয় পণ্য</h2>
+                <div class="products-grid" id="featured-products-grid">
+                    <!-- Products will be loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Model Images Section -->
+        <section class="models-section">
+            <div class="container">
+                <h2>আমাদের মডেল গ্যালারি</h2>
+                <div class="models-grid">
+                    <div class="model-card">
+                        <img src="https://via.placeholder.com/300x400/ff69b4/ffffff?text=মডেল+১" alt="মডেল ১">
+                    </div>
+                    <div class="model-card">
+                        <img src="https://via.placeholder.com/300x400/ff1493/ffffff?text=মডেল+২" alt="মডেল ২">
+                    </div>
+                    <div class="model-card">
+                        <img src="https://via.placeholder.com/300x400/ff69b4/ffffff?text=মডেল+৩" alt="মডেল ৩">
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Products Page -->
+    <div id="products-page" class="page">
+        <div class="container">
+            <h1>আমাদের পণ্য</h1>
+            
+            <!-- Product Search -->
+            <div class="product-search-container">
+                <h3 style="color: #667eea; margin-bottom: 1rem; text-align: center;">পণ্য খুঁজুন</h3>
+                <div class="product-search-box">
+                    <input type="text" id="customer-search" placeholder="পণ্যের নাম, ID বা বিবরণ লিখুন...">
+                    <button class="search-btn" onclick="searchCustomerProducts()">
+                        <i class="fas fa-search"></i> খুঁজুন
+                    </button>
+                    <button class="clear-search-btn" onclick="clearCustomerSearch()">
+                        <i class="fas fa-times"></i> সাফ করুন
+                    </button>
+                </div>
+                <div id="search-results-info"></div>
+            </div>
+            
+            <!-- Category Filter -->
+            <div class="category-filter">
+                <button class="filter-btn active" onclick="filterProducts('all')">সব</button>
+                <button class="filter-btn" onclick="filterProducts('saree')">শাড়ি</button>
+                <button class="filter-btn" onclick="filterProducts('dress')">জামা</button>
+                <button class="filter-btn" onclick="filterProducts('jewelry')">গয়না</button>
+                <button class="filter-btn" onclick="filterProducts('makeup')">মেকআপ</button>
+                <button class="filter-btn" onclick="filterProducts('bag')">ব্যাগ</button>
+            </div>
+
+            <div class="products-grid" id="products-grid">
+                <!-- Products will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Detail Page -->
+    <div id="product-detail-page" class="page">
+        <div class="container">
+            <button onclick="showPage('products')" class="back-btn">← পিছনে যান</button>
+            <div id="product-detail-content">
+                <!-- Product details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Page -->
+    <div id="contact-page" class="page">
+        <div class="container">
+            <h1>যোগাযোগ</h1>
+            <div class="contact-info">
+                <div class="contact-card" onclick="openWhatsApp()">
+                    <i class="fab fa-whatsapp"></i>
+                    <h3>WhatsApp</h3>
+                    <p id="whatsapp-number">01712345678</p>
+                    <a href="#" onclick="openWhatsApp()">মেসেজ করুন</a>
+                </div>
+                <div class="contact-card" onclick="openFacebook()">
+                    <i class="fab fa-facebook"></i>
+                    <h3>Facebook</h3>
+                    <a href="#" onclick="openFacebook()">আমাদের পেজ</a>
+                </div>
+                <div class="contact-card" onclick="openTikTok()">
+                    <i class="fab fa-tiktok"></i>
+                    <h3>TikTok</h3>
+                    <a href="#" onclick="openTikTok()">ফলো করুন</a>
+                </div>
+            </div>
+
+            <!-- Order Form -->
+            <div class="order-form">
+                <h2>অর্ডার করুন</h2>
+                <form id="order-form">
+                    <input type="text" placeholder="আপনার নাম" required>
+                    <input type="tel" placeholder="ফোন নাম্বার" required>
+                    <input type="text" placeholder="ঠিকানা" required>
+                    <input type="text" placeholder="পণ্যের নাম" required>
+                    <textarea placeholder="পণ্যের বিবরণ" required></textarea>
+                    <input type="url" placeholder="লোকেশন URL (ঐচ্ছিক)">
+                    <button type="submit">অর্ডার করুন</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div id="admin-login-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAdminLogin()">&times;</span>
+            <h2>অ্যাডমিন লগইন</h2>
+            <form id="admin-login-form">
+                <input type="text" id="admin-username" placeholder="Username" required>
+                <input type="password" id="admin-password" placeholder="Password" required>
+                <button type="submit">লগইন</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="admin-dashboard" class="admin-panel">
+        <div class="container">
+            <div class="admin-header">
+                <h1>অ্যাডমিন ড্যাশবোর্ড</h1>
+                <button onclick="logoutAdmin()">লগআউট</button>
+            </div>
+
+            <div class="admin-tabs">
+                <button class="tab-btn active" onclick="showAdminTab('products')">পণ্য ম্যানেজমেন্ট</button>
+                <button class="tab-btn" onclick="showAdminTab('categories')">ক্যাটেগরি ম্যানেজমেন্ট</button>
+                <button class="tab-btn" onclick="showAdminTab('settings')">সাইট সেটিংস</button>
+                <button class="tab-btn" onclick="showAdminTab('content')">কন্টেন্ট ম্যানেজমেন্ট</button>
+                <button class="tab-btn" onclick="showAdminTab('reviews')">রিভিউ ম্যানেজমেন্ট</button>
+                <button class="tab-btn" onclick="showAdminTab('account')">অ্যাকাউন্ট সেটিংস</button>
+            </div>
+
+            <!-- Products Management -->
+            <div id="admin-products" class="admin-tab active">
+                <div class="admin-section">
+                    <h2>পণ্য অনুসন্ধান</h2>
+                    <div class="search-box">
+                        <input type="text" id="product-search" placeholder="পণ্যের নাম বা ID দিয়ে খুঁজুন">
+                        <button onclick="searchProducts()">খুঁজুন</button>
+                        <button onclick="clearSearch()">সব দেখান</button>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h2>নতুন পণ্য যোগ করুন</h2>
+                    <form id="add-product-form" class="admin-form">
+                        <input type="text" id="product-name" placeholder="পণ্যের নাম" required>
+                        <input type="number" id="product-cost-price" placeholder="ক্রয় মূল্য" required>
+                        <input type="number" id="product-selling-price" placeholder="বিক্রয় মূল্য" required>
+                        <select id="product-category" required>
+                            <option value="">ক্যাটেগরি নির্বাচন করুন</option>
+                        </select>
+                        <textarea id="product-description" placeholder="পণ্যের বিবরণ" required></textarea>
+                        <input type="url" id="product-image" placeholder="পণ্যের ছবির লিংক" required>
+                        <textarea id="product-features" placeholder="বৈশিষ্ট্যসমূহ (প্রতিটি লাইনে একটি করে)"></textarea>
+                        <input type="text" id="product-standard-delivery" placeholder="স্ট্যান্ডার্ড ডেলিভারি" required>
+                        <input type="text" id="product-return" placeholder="রিটার্ন" required>
+                        <textarea id="product-delivery-options" placeholder="ডেলিভারি বিকল্প" rows="4" required></textarea>
+                        <button type="submit">পণ্য যোগ করুন</button>
+                    </form>
+                </div>
+
+                <div class="admin-section">
+                    <h2>পণ্য তালিকা</h2>
+                    <div id="admin-products-list">
+                        <!-- Products list will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Management -->
+            <div id="admin-categories" class="admin-tab">
+                <div class="admin-section">
+                    <h2>নতুন ক্যাটেগরি যোগ করুন</h2>
+                    <form id="add-category-form" class="admin-form">
+                        <input type="text" id="category-name-en" placeholder="ক্যাটেগরি নাম (ইংরেজি)" required>
+                        <input type="text" id="category-name-bn" placeholder="ক্যাটেগরি নাম (বাংলা)" required>
+                        <button type="submit">ক্যাটেগরি যোগ করুন</button>
+                    </form>
+                </div>
+
+                <div class="admin-section">
+                    <h2>বিদ্যমান ক্যাটেগরি</h2>
+                    <div id="categories-list" class="category-management">
+                        <!-- Categories will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Site Settings -->
+            <div id="admin-settings" class="admin-tab">
+                <div class="admin-section">
+                    <h2>সাইট সেটিংস</h2>
+                    <form id="site-settings-form" class="admin-form">
+                        <input type="text" id="site-name-input" placeholder="সাইটের নাম">
+                        <input type="text" id="site-slogan-input" placeholder="সাইটের স্লোগান">
+                        <input type="tel" id="whatsapp-input" placeholder="WhatsApp নাম্বার">
+                        <input type="url" id="facebook-input" placeholder="Facebook পেজ লিংক">
+                        <input type="url" id="tiktok-input" placeholder="TikTok প্রোফাইল লিংক">
+                        <button type="submit">সেভ করুন</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Content Management -->
+            <div id="admin-content" class="admin-tab">
+                <div class="admin-section">
+                    <h2>হোম ব্যানার ম্যানেজমেন্ট</h2>
+                    <form id="banner-form" class="admin-form">
+                        <input type="url" id="banner1-input" placeholder="হোম ব্যানার ছবির লিংক">
+                        <button type="submit">ব্যানার আপডেট করুন</button>
+                    </form>
+                </div>
+
+                <div class="admin-section">
+                    <h2>মডেল গ্যালারি ম্যানেজমেন্ট</h2>
+                    <form id="models-form" class="admin-form">
+                        <input type="url" id="model1-input" placeholder="মডেল ১ ছবির লিংক">
+                        <input type="url" id="model2-input" placeholder="মডেল ২ ছবির লিংক">
+                        <input type="url" id="model3-input" placeholder="মডেল ৩ ছবির লিংক">
+                        <button type="submit">মডেল গ্যালারি আপডেট করুন</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Reviews Management -->
+            <div id="admin-reviews" class="admin-tab">
+                <div class="admin-section">
+                    <h2>কাস্টমার রিভিউ ম্যানেজমেন্ট</h2>
+                    <div class="search-box">
+                        <input type="text" id="review-search" placeholder="রিভিউ বা কাস্টমার নাম দিয়ে খুঁজুন">
+                        <button onclick="searchReviews()">খুঁজুন</button>
+                        <button onclick="clearReviewSearch()">সব দেখান</button>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h2>সকল রিভিউ</h2>
+                    <div id="admin-reviews-list">
+                        <!-- Reviews will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Settings -->
+            <div id="admin-account" class="admin-tab">
+                <div class="admin-section">
+                    <h2>অ্যাডমিন অ্যাকাউন্ট সেটিংস</h2>
+                    <form id="admin-account-form" class="admin-form">
+                        <input type="text" id="new-username" placeholder="নতুন Username">
+                        <input type="password" id="current-password" placeholder="বর্তমান Password" required>
+                        <input type="password" id="new-password" placeholder="নতুন Password">
+                        <input type="password" id="confirm-password" placeholder="নতুন Password নিশ্চিত করুন">
+                        <button type="submit">অ্যাকাউন্ট আপডেট করুন</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div id="edit-product-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditProduct()">&times;</span>
+            <h2>পণ্য সম্পাদনা করুন</h2>
+            <form id="edit-product-form" class="admin-form">
+                <input type="hidden" id="edit-product-id">
+                <input type="text" id="edit-product-name" placeholder="পণ্যের নাম" required>
+                <input type="number" id="edit-product-cost-price" placeholder="ক্রয় মূল্য" required>
+                <input type="number" id="edit-product-selling-price" placeholder="বিক্রয় মূল্য" required>
+                <select id="edit-product-category" required>
+                </select>
+                <textarea id="edit-product-description" placeholder="পণ্যের বিবরণ" required></textarea>
+                <input type="url" id="edit-product-image" placeholder="পণ্যের ছবির লিংক" required>
+                <textarea id="edit-product-features" placeholder="বৈশিষ্ট্যসমূহ"></textarea>
+                <input type="text" id="edit-product-standard-delivery" placeholder="স্ট্যান্ডার্ড ডেলিভারি" required>
+                <input type="text" id="edit-product-return" placeholder="রিটার্ন" required>
+                <textarea id="edit-product-delivery-options" placeholder="ডেলিভারি বিকল্প" rows="4" required></textarea>
+                <button type="submit">আপডেট করুন</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cart Modal -->
+    <div id="cart-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCart()">&times;</span>
+            <div id="cart-content">
+                <!-- Cart content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Default data
+        let products = [
+            {
+                id: 1,
+                name: "রঙিন শাড়ি",
+                costPrice: 1800,
+                sellingPrice: 2500,
+                category: "saree",
+                description: "সুন্দর রঙিন শাড়ি, বিশেষ অনুষ্ঠানের জন্য উপযুক্ত",
+                image: "https://via.placeholder.com/300x400/ff69b4/ffffff?text=রঙিন+শাড়ি",
+                features: ["১০০% সুতি", "হাতে বোনা", "ওয়াশেবল", "আকর্ষণীয় ডিজাইন"],
+                standardDelivery: "৩-৫ কর্মদিবস",
+                return: "৭ দিনের মধ্যে ফেরত",
+                deliveryOptions: "✅ ঢাকার মধ্যে হোম ডেলিভারি – ১-২ দিন\n✅ ঢাকার বাইরে কুরিয়ার – ২-৪ দিন\n💳 ক্যাশ অন ডেলিভারি (COD) এবং বিকাশ/নগদ পেমেন্ট গ্রহণযোগ্য\n🚚 ডেলিভারি চার্জ – ৳৭০ (ঢাকার ভিতরে), ৳১২০ (বাইরে)"
+            },
+            {
+                id: 2,
+                name: "ডিজাইনার জামা",
+                costPrice: 1200,
+                sellingPrice: 1800,
+                category: "dress",
+                description: "আধুনিক ডিজাইনের মেয়েদের জামা",
+                image: "https://via.placeholder.com/300x400/ff1493/ffffff?text=ডিজাইনার+জামা",
+                features: ["কমফোর্ট ফিট", "প্রিমিয়াম কোয়ালিটি", "ট্রেন্ডি ডিজাইন"],
+                standardDelivery: "২-৪ কর্মদিবস",
+                return: "১০ দিনের মধ্যে ফেরত",
+                deliveryOptions: "✅ ঢাকার মধ্যে হোম ডেলিভারি – ১-২ দিন\n✅ ঢাকার বাইরে কুরিয়ার – ২-৪ দিন\n💳 ক্যাশ অন ডেলিভারি (COD) এবং বিকাশ/নগদ পেমেন্ট গ্রহণযোগ্য\n🚚 ডেলিভারি চার্জ – ৳৭০ (ঢাকার ভিতরে), ৳১২০ (বাইরে)"
+            },
+            {
+                id: 3,
+                name: "সোনালি গয়না সেট",
+                costPrice: 2200,
+                sellingPrice: 3200,
+                category: "jewelry",
+                description: "সুন্দর সোনালি গয়না সেট",
+                image: "https://via.placeholder.com/300x400/ffd700/ffffff?text=সোনালি+গয়না",
+                features: ["হাই কোয়ালিটি", "এলার্জি ফ্রি", "দীর্ঘস্থায়ী"],
+                standardDelivery: "১-২ কর্মদিবস",
+                return: "৩ দিনের মধ্যে ফেরত",
+                deliveryOptions: "✅ ঢাকার মধ্যে হোম ডেলিভারি – ১-২ দিন\n✅ ঢাকার বাইরে কুরিয়ার – ২-৪ দিন\n💳 ক্যাশ অন ডেলিভারি (COD) এবং বিকাশ/নগদ পেমেন্ট গ্রহণযোগ্য\n🚚 ডেলিভারি চার্জ – ৳৭০ (ঢাকার ভিতরে), ৳১২০ (বাইরে)"
+            },
+            {
+                id: 4,
+                name: "মেকআপ কিট",
+                costPrice: 900,
+                sellingPrice: 1500,
+                category: "makeup",
+                description: "সম্পূর্ণ মেকআপ কিট",
+                image: "https://via.placeholder.com/300x400/ff69b4/ffffff?text=মেকআপ+কিট",
+                features: ["সম্পূর্ণ সেট", "ভাল কোয়ালিটি", "সকল স্কিন টাইপের জন্য"],
+                standardDelivery: "২-৩ কর্মদিবস",
+                return: "৫ দিনের মধ্যে ফেরত",
+                deliveryOptions: "✅ ঢাকার মধ্যে হোম ডেলিভারি – ১-২ দিন\n✅ ঢাকার বাইরে কুরিয়ার – ২-৪ দিন\n💳 ক্যাশ অন ডেলিভারি (COD) এবং বিকাশ/নগদ পেমেন্ট গ্রহণযোগ্য\n🚚 ডেলিভারি চার্জ – ৳৭০ (ঢাকার ভিতরে), ৳১২০ (বাইরে)"
+            },
+            {
+                id: 5,
+                name: "হ্যান্ড ব্যাগ",
+                costPrice: 700,
+                sellingPrice: 1200,
+                category: "bag",
+                description: "স্টাইলিশ হ্যান্ড ব্যাগ",
+                image: "https://via.placeholder.com/300x400/ff1493/ffffff?text=হ্যান্ড+ব্যাগ",
+                features: ["ডিউরেবল", "স্পেসিয়াস", "ফ্যাশনেবল"],
+                standardDelivery: "৩-৪ কর্মদিবস",
+                return: "৭ দিনের মধ্যে ফেরত",
+                deliveryOptions: "✅ ঢাকার মধ্যে হোম ডেলিভারি – ১-২ দিন\n✅ ঢাকার বাইরে কুরিয়ার – ২-৪ দিন\n💳 ক্যাশ অন ডেলিভারি (COD) এবং বিকাশ/নগদ পেমেন্ট গ্রহণযোগ্য\n🚚 ডেলিভারি চার্জ – ৳৭০ (ঢাকার ভিতরে), ৳১২০ (বাইরে)"
+            }
+        ];
+
+        let categories = {
+            'saree': 'শাড়ি',
+            'dress': 'জামা',
+            'jewelry': 'গয়না',
+            'makeup': 'মেকআপ',
+            'bag': 'ব্যাগ'
+        };
+
+        let adminCredentials = {
+            username: 'admin',
+            password: 'admin123'
+        };
+
+        let siteSettings = {
+            siteName: "ফ্যাশন ফ্লো",
+            siteSlogan: "আপনার স্টাইলের সঙ্গী",
+            whatsapp: "+8801893398035",
+            facebook: "https://facebook.com/fashionflowbd",
+            tiktok: "https://tiktok.com/@fashionflowbd"
+        };
+
+        let bannerImages = [
+            "https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+        ];
+
+        let modelImages = [
+            "https://via.placeholder.com/300x400/ff69b4/ffffff?text=মডেল+১",
+            "https://via.placeholder.com/300x400/ff1493/ffffff?text=মডেল+২",
+            "https://via.placeholder.com/300x400/ff69b4/ffffff?text=মডেল+৩"
+        ];
+
+        let isAdminLoggedIn = false;
+        let currentProduct = null;
+        let shoppingCart = [];
+
+        let filteredProducts = products;
+        let customerFilteredProducts = products;
+
+        // Reviews data
+        let reviews = [];
+
+        // Initialize the website
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSavedData();
+            loadSavedReviews();
+            loadSiteSettings();
+            loadBanners();
+            loadModels();
+            loadCategoryOptions();
+            setupEventListeners();
+            updateCartDisplay();
+            
+            // Load products from Firebase first, then local storage as backup
+            loadProductsFromFirebase().then(firebaseProducts => {
+                if (firebaseProducts && firebaseProducts.length > 0) {
+                    products = firebaseProducts;
+                    filteredProducts = products;
+                    customerFilteredProducts = products;
+                    console.log('Loaded products from Firebase:', firebaseProducts.length);
+                } else {
+                    console.log('No products in Firebase, using local storage');
+                }
+                
+                loadProducts();
+                loadCustomerProducts();
+                loadFeaturedProducts();
+                loadAdminProducts();
+            }).catch(error => {
+                console.error('Error loading from Firebase:', error);
+                // Use local storage as backup
+                loadProducts();
+                loadCustomerProducts();
+                loadFeaturedProducts();
+                loadAdminProducts();
+            });
+        });
+
+        // Event Listeners
+        function setupEventListeners() {
+            // Admin login form
+            document.getElementById('admin-login-form').addEventListener('submit', handleAdminLogin);
+            
+            // Product forms
+            document.getElementById('add-product-form').addEventListener('submit', handleAddProduct);
+            document.getElementById('edit-product-form').addEventListener('submit', handleEditProduct);
+            
+            // Category form
+            document.getElementById('add-category-form').addEventListener('submit', handleAddCategory);
+            
+            // Settings forms
+            document.getElementById('site-settings-form').addEventListener('submit', handleSiteSettings);
+            document.getElementById('banner-form').addEventListener('submit', handleBannerUpdate);
+            document.getElementById('models-form').addEventListener('submit', handleModelsUpdate);
+            document.getElementById('admin-account-form').addEventListener('submit', handleAccountUpdate);
+            
+            // Order form
+            document.getElementById('order-form').addEventListener('submit', handleOrder);
+        }
+
+        // Enhanced Social Media Functions
+        function openWhatsApp() {
+            const whatsappNumber = siteSettings.whatsapp;
+            const message = "আমি আপনাদের পণ্য সম্পর্কে জানতে চাই।";
+            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+        }
+
+        function openFacebook() {
+            window.open(siteSettings.facebook, '_blank');
+        }
+
+        function openTikTok() {
+            window.open(siteSettings.tiktok, '_blank');
+        }
+
+        // Customer Product Search Functions
+        function searchCustomerProducts() {
+            const searchTerm = document.getElementById('customer-search').value.toLowerCase().trim();
+            const resultsInfo = document.getElementById('search-results-info');
+            
+            if (!searchTerm) {
+                customerFilteredProducts = products;
+                resultsInfo.innerHTML = '';
+                loadCustomerProducts();
+                return;
+            }
+            
+            customerFilteredProducts = products.filter(product => 
+                product.name.toLowerCase().includes(searchTerm) || 
+                product.id.toString().includes(searchTerm) ||
+                product.description.toLowerCase().includes(searchTerm) ||
+                categories[product.category].toLowerCase().includes(searchTerm)
+            );
+            
+            if (customerFilteredProducts.length > 0) {
+                resultsInfo.innerHTML = `<div class="search-results-info">${customerFilteredProducts.length}টি পণ্য পাওয়া গেছে "${searchTerm}" খোঁজার জন্য</div>`;
+            } else {
+                resultsInfo.innerHTML = `<div class="no-results">কোন পণ্য পাওয়া যায়নি "${searchTerm}" এর জন্য। অন্য কোন শব্দ দিয়ে খোঁজ করে দেখুন।</div>`;
+            }
+            
+            loadCustomerProducts();
+        }
+
+        function clearCustomerSearch() {
+            document.getElementById('customer-search').value = '';
+            document.getElementById('search-results-info').innerHTML = '';
+            customerFilteredProducts = products;
+            loadCustomerProducts();
+        }
+
+        function loadCustomerProducts() {
+            const productsGrid = document.getElementById('products-grid');
+            productsGrid.innerHTML = '';
+            
+            customerFilteredProducts.forEach(product => {
+                const productCard = createProductCard(product);
+                productsGrid.appendChild(productCard);
+            });
+        }
+
+        // Navigation Functions
+        function showPage(pageId) {
+            // Hide all pages
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => page.classList.remove('active'));
+            
+            // Hide admin dashboard
+            document.getElementById('admin-dashboard').style.display = 'none';
+            
+            // Show selected page
+            document.getElementById(pageId + '-page').classList.add('active');
+            
+            // Load page-specific content
+            if (pageId === 'products') {
+                customerFilteredProducts = products;
+                loadCustomerProducts();
+                document.getElementById('customer-search').value = '';
+                document.getElementById('search-results-info').innerHTML = '';
+            }
+        }
+
+        function toggleMobileMenu() {
+            const mobileNav = document.getElementById('mobile-nav');
+            mobileNav.classList.toggle('active');
+            
+            // Close mobile menu when clicking outside
+            if (mobileNav.classList.contains('active')) {
+                document.addEventListener('click', closeMobileMenuOnOutsideClick);
+            } else {
+                document.removeEventListener('click', closeMobileMenuOnOutsideClick);
+            }
+        }
+
+        function closeMobileMenuOnOutsideClick(event) {
+            const mobileNav = document.getElementById('mobile-nav');
+            const mobileMenu = document.querySelector('.mobile-menu');
+            
+            if (!mobileNav.contains(event.target) && !mobileMenu.contains(event.target)) {
+                mobileNav.classList.remove('active');
+                document.removeEventListener('click', closeMobileMenuOnOutsideClick);
+            }
+        }
+
+        // Close mobile menu on window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                const mobileNav = document.getElementById('mobile-nav');
+                mobileNav.classList.remove('active');
+                document.removeEventListener('click', closeMobileMenuOnOutsideClick);
+            }
+        });
+
+        // Touch gesture support for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+            
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    // Swipe left - could be used for navigation
+                    console.log('Swiped left');
+                } else {
+                    // Swipe right - could be used for navigation
+                    console.log('Swiped right');
+                }
+            }
+        }
+
+
+
+        // Product Functions
+        function loadProducts() {
+            const productsGrid = document.getElementById('products-grid');
+            productsGrid.innerHTML = '';
+            
+            filteredProducts.forEach(product => {
+                const productCard = createProductCard(product);
+                productsGrid.appendChild(productCard);
+            });
+        }
+
+        function loadFeaturedProducts() {
+            const featuredGrid = document.getElementById('featured-products-grid');
+            featuredGrid.innerHTML = '';
+            
+            // Show first 3 products as featured
+            const featuredProducts = products.slice(0, 3);
+            featuredProducts.forEach(product => {
+                const productCard = createProductCard(product);
+                featuredGrid.appendChild(productCard);
+            });
+        }
+
+        function createProductCard(product) {
+            const card = document.createElement('div');
+            card.className = 'product-card fade-in';
+            card.innerHTML = `
+                <img src="${product.image}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/300x400/ff69b4/ffffff?text=ছবি+নেই'">
+                <div class="product-info">
+                    <div class="product-id">পণ্য ID: ${product.id}</div>
+                    <h3>${product.name}</h3>
+                    <div class="price">৳${product.sellingPrice}</div>
+                    <p>${product.description}</p>
+                    <div class="product-actions">
+                        <button class="order-btn" onclick="showProductDetail(${product.id})">বিস্তারিত দেখুন</button>
+                        <button class="add-to-cart-btn" onclick="addToCart(${product.id})">কার্টে যোগ করুন</button>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+
+        function showProductDetail(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            currentProduct = product;
+            
+            const detailContent = document.getElementById('product-detail-content');
+            detailContent.innerHTML = `
+                <div class="product-detail">
+                    <div class="product-detail-image">
+                        <img src="${product.image}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/500x600/ff69b4/ffffff?text=ছবি+নেই'">
+                    </div>
+                    <div class="product-detail-info">
+                        <h1>${product.name}</h1>
+                        <div style="font-size: 1rem; color: #666; margin-bottom: 1rem;">পণ্য ID: ${product.id}</div>
+                        <div class="price">৳${product.sellingPrice}</div>
+                        <div class="description">${product.description}</div>
+                        <div class="product-features">
+                            <h3>বৈশিষ্ট্যসমূহ:</h3>
+                            <ul>
+                                ${product.features.map(feature => `<li>✓ ${feature}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div class="product-delivery-info">
+                            <h3>ডেলিভারি তথ্য:</h3>
+                            <div class="delivery-item">
+                                <strong>স্ট্যান্ডার্ড ডেলিভারি:</strong> ${product.standardDelivery || 'উপলব্ধ নয়'}
+                            </div>
+                            <div class="delivery-item">
+                                <strong>রিটার্ন:</strong> ${product.return || 'উপলব্ধ নয়'}
+                            </div>
+                            <div class="delivery-item">
+                                <strong>ডেলিভারি বিকল্প:</strong> ${product.deliveryOptions || 'উপলব্ধ নয়'}
+                            </div>
+                        </div>
+                        <div class="product-detail-actions">
+                            <button class="cta-btn" onclick="orderProductDirectly(${product.id})">এখনই অর্ডার করুন</button>
+                            <button class="add-to-cart-btn" onclick="addToCart(${product.id})">কার্টে যোগ করুন</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Customer Reviews Section -->
+                <div class="reviews-section">
+                    <h2>কাস্টমার রিভিউ</h2>
+                    
+                    <!-- Review Form -->
+                    <div class="review-form">
+                        <h3>আপনার রিভিউ দিন</h3>
+                        <form id="review-form">
+                            <input type="text" id="reviewer-name" placeholder="আপনার নাম" required>
+                            <div class="rating-input">
+                                <label>রেটিং:</label>
+                                <div class="stars">
+                                    <i class="fas fa-star" data-rating="1"></i>
+                                    <i class="fas fa-star" data-rating="2"></i>
+                                    <i class="fas fa-star" data-rating="3"></i>
+                                    <i class="fas fa-star" data-rating="4"></i>
+                                    <i class="fas fa-star" data-rating="5"></i>
+                                </div>
+                            </div>
+                            <textarea id="review-comment" placeholder="আপনার মতামত লিখুন..." required></textarea>
+                            <button type="submit">রিভিউ জমা দিন</button>
+                        </form>
+                    </div>
+                    
+                    <!-- Reviews List -->
+                    <div class="reviews-list" id="reviews-list">
+                        <!-- Reviews will be loaded here -->
+                    </div>
+                </div>
+            `;
+            
+            showPage('product-detail');
+            
+            // Load reviews for this product
+            loadProductReviews(productId);
+            
+            // Setup review form event listeners
+            setupReviewForm();
+        }
+
+        function orderProductDirectly(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            const whatsappNumber = siteSettings.whatsapp;
+            const message = `আমি অর্ডার করতে চাই:\n\nপণ্যের নাম: ${product.name}\nপণ্য ID: ${product.id}\nদাম: ৳${product.sellingPrice}\n\nঅনুগ্রহ করে আমাকে এই পণ্যটি সম্পর্কে আরও তথ্য দিন।`;
+            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+            
+            window.open(whatsappUrl, '_blank');
+        }
+
+        function filterProducts(category) {
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            filterBtns.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            customerFilteredProducts = category === 'all' ? products : products.filter(p => p.category === category);
+            loadCustomerProducts();
+            
+            // Clear search when filtering
+            document.getElementById('customer-search').value = '';
+            document.getElementById('search-results-info').innerHTML = '';
+        }
+
+        // Search Products (Admin)
+        function searchProducts() {
+            const searchTerm = document.getElementById('product-search').value.toLowerCase();
+            
+            if (!searchTerm) {
+                filteredProducts = products;
+            } else {
+                filteredProducts = products.filter(product => 
+                    product.name.toLowerCase().includes(searchTerm) || 
+                    product.id.toString().includes(searchTerm) ||
+                    product.description.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            loadAdminProducts();
+            showMessage(`${filteredProducts.length}টি পণ্য পাওয়া গেছে`, 'success');
+        }
+
+        function clearSearch() {
+            document.getElementById('product-search').value = '';
+            filteredProducts = products;
+            loadAdminProducts();
+        }
+
+        // Category Management
+        function loadCategoryOptions() {
+            const categorySelects = [
+                document.getElementById('product-category'),
+                document.getElementById('edit-product-category')
+            ];
+            
+            categorySelects.forEach(select => {
+                if (select) {
+                    select.innerHTML = '<option value="">ক্যাটেগরি নির্বাচন করুন</option>';
+                    Object.keys(categories).forEach(key => {
+                        const option = document.createElement('option');
+                        option.value = key;
+                        option.textContent = categories[key];
+                        select.appendChild(option);
+                    });
+                }
+            });
+            
+            loadCategoriesList();
+        }
+
+        function loadCategoriesList() {
+            const categoriesList = document.getElementById('categories-list');
+            if (!categoriesList) return;
+            
+            categoriesList.innerHTML = '';
+            
+            Object.keys(categories).forEach(key => {
+                const categoryItem = document.createElement('div');
+                categoryItem.className = 'category-item';
+                categoryItem.innerHTML = `
+                    <div>
+                        <strong>${categories[key]}</strong> (${key})
+                    </div>
+                    <button onclick="deleteCategory('${key}')">মুছুন</button>
+                `;
+                categoriesList.appendChild(categoryItem);
+            });
+        }
+
+        function handleAddCategory(e) {
+            e.preventDefault();
+            
+            const nameEn = document.getElementById('category-name-en').value.toLowerCase();
+            const nameBn = document.getElementById('category-name-bn').value;
+            
+            if (categories[nameEn]) {
+                showMessage('এই ক্যাটেগরি ইতিমধ্যে বিদ্যমান!', 'error');
+                return;
+            }
+            
+            categories[nameEn] = nameBn;
+            loadCategoryOptions();
+            
+            document.getElementById('add-category-form').reset();
+            showMessage('নতুন ক্যাটেগরি সফলভাবে যোগ করা হয়েছে!', 'success');
+            autoSave();
+        }
+
+        function deleteCategory(categoryKey) {
+            if (confirm('আপনি কি নিশ্চিত এই ক্যাটেগরি মুছে ফেলতে চান?')) {
+                // Check if any products use this category
+                const productsUsingCategory = products.filter(p => p.category === categoryKey);
+                
+                if (productsUsingCategory.length > 0) {
+                    showMessage(`এই ক্যাটেগরিতে ${productsUsingCategory.length}টি পণ্য রয়েছে। প্রথমে সেগুলো মুছুন বা ক্যাটেগরি পরিবর্তন করুন।`, 'error');
+                    return;
+                }
+                
+                delete categories[categoryKey];
+                loadCategoryOptions();
+                showMessage('ক্যাটেগরি সফলভাবে মুছে ফেলা হয়েছে!', 'success');
+                autoSave();
+            }
+        }
+
+        // Admin Functions
+        function showAdminLogin() {
+            document.getElementById('admin-login-modal').style.display = 'block';
+        }
+
+        function closeAdminLogin() {
+            document.getElementById('admin-login-modal').style.display = 'none';
+        }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('admin-username').value;
+            const password = document.getElementById('admin-password').value;
+            
+            if (username === adminCredentials.username && password === adminCredentials.password) {
+                isAdminLoggedIn = true;
+                closeAdminLogin();
+                showAdminDashboard();
+                showMessage('সফলভাবে লগইন হয়েছে!', 'success');
+            } else {
+                showMessage('ভুল ইউজারনেম বা পাসওয়ার্ড!', 'error');
+            }
+        }
+
+        function showAdminDashboard() {
+            // Hide all pages
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => page.classList.remove('active'));
+            
+            // Show admin dashboard
+            document.getElementById('admin-dashboard').style.display = 'block';
+            
+            // Load admin content
+            loadAdminProducts();
+            loadAdminSettings();
+            loadCategoryOptions();
+        }
+
+        function logoutAdmin() {
+            isAdminLoggedIn = false;
+            document.getElementById('admin-dashboard').style.display = 'none';
+            showPage('home');
+            showMessage('সফলভাবে লগআউট হয়েছে!', 'success');
+        }
+
+        function showAdminTab(tabName) {
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.admin-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Remove active class from all tab buttons
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            tabBtns.forEach(btn => btn.classList.remove('active'));
+            
+            // Show selected tab
+            document.getElementById('admin-' + tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            // Load specific content for reviews tab
+            if (tabName === 'reviews') {
+                loadAllReviews();
+            }
+        }
+
+        function loadAdminProducts() {
+            const productsList = document.getElementById('admin-products-list');
+            productsList.innerHTML = '';
+            
+            filteredProducts.forEach(product => {
+                const productItem = document.createElement('div');
+                productItem.className = 'admin-product-item';
+                productItem.innerHTML = `
+                                <div class="admin-product-info">
+                <h4>${product.name} (ID: ${product.id})</h4>
+                <p>ক্রয় মূল্য: ৳${product.costPrice} | বিক্রয় মূল্য: ৳${product.sellingPrice} | ক্যাটেগরি: ${categories[product.category] || product.category}</p>
+            </div>
+                    <div class="admin-product-actions">
+                        <button class="edit-btn" onclick="editProduct(${product.id})">সম্পাদনা</button>
+                        <button class="delete-btn" onclick="deleteProduct(${product.id})">মুছুন</button>
+                    </div>
+                `;
+                productsList.appendChild(productItem);
+            });
+        }
+
+        async function handleAddProduct(e) {
+            e.preventDefault();
+            
+            const newProduct = {
+                id: Date.now(),
+                name: document.getElementById('product-name').value,
+                costPrice: parseInt(document.getElementById('product-cost-price').value),
+                sellingPrice: parseInt(document.getElementById('product-selling-price').value),
+                category: document.getElementById('product-category').value,
+                description: document.getElementById('product-description').value,
+                image: document.getElementById('product-image').value,
+                features: document.getElementById('product-features').value.split('\n').filter(f => f.trim()),
+                standardDelivery: document.getElementById('product-standard-delivery').value,
+                return: document.getElementById('product-return').value,
+                deliveryOptions: document.getElementById('product-delivery-options').value,
+                createdAt: new Date()
+            };
+            
+            try {
+                // Save to Firebase first
+                const firebaseId = await saveProductToFirebase(newProduct);
+                if (firebaseId) {
+                    newProduct.firebaseId = firebaseId;
+                    console.log('Product saved to Firebase with ID:', firebaseId);
+                }
+                
+                // Also save to local storage as backup
+                products.push(newProduct);
+                filteredProducts = products;
+                customerFilteredProducts = products;
+                loadProducts();
+                loadCustomerProducts();
+                loadFeaturedProducts();
+                loadAdminProducts();
+                
+                // Reset form
+                document.getElementById('add-product-form').reset();
+                
+                showMessage('নতুন পণ্য সফলভাবে যোগ করা হয়েছে! (Firebase + Local)', 'success');
+                autoSave();
+            } catch (error) {
+                console.error('Error saving to Firebase:', error);
+                showMessage('Firebase-এ সংরক্ষণে সমস্যা হয়েছে, কিন্তু লোকাল স্টোরেজে সংরক্ষিত হয়েছে।', 'warning');
+                
+                // Still save to local storage
+                products.push(newProduct);
+                filteredProducts = products;
+                customerFilteredProducts = products;
+                loadProducts();
+                loadCustomerProducts();
+                loadFeaturedProducts();
+                loadAdminProducts();
+                
+                document.getElementById('add-product-form').reset();
+                showMessage('পণ্য লোকাল স্টোরেজে সংরক্ষিত হয়েছে।', 'success');
+                autoSave();
+            }
+        }
+
+        function editProduct(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            // Fill edit form
+            document.getElementById('edit-product-id').value = product.id;
+            document.getElementById('edit-product-name').value = product.name;
+            document.getElementById('edit-product-cost-price').value = product.costPrice;
+            document.getElementById('edit-product-selling-price').value = product.sellingPrice;
+            document.getElementById('edit-product-category').value = product.category;
+            document.getElementById('edit-product-description').value = product.description;
+            document.getElementById('edit-product-image').value = product.image;
+            document.getElementById('edit-product-features').value = product.features.join('\n');
+            document.getElementById('edit-product-standard-delivery').value = product.standardDelivery || '';
+            document.getElementById('edit-product-return').value = product.return || '';
+            document.getElementById('edit-product-delivery-options').value = product.deliveryOptions || '';
+            
+            // Show modal
+            document.getElementById('edit-product-modal').style.display = 'block';
+        }
+
+        function closeEditProduct() {
+            document.getElementById('edit-product-modal').style.display = 'none';
+        }
+
+        function handleEditProduct(e) {
+            e.preventDefault();
+            
+            const productId = parseInt(document.getElementById('edit-product-id').value);
+            const productIndex = products.findIndex(p => p.id === productId);
+            
+            if (productIndex === -1) return;
+            
+            products[productIndex] = {
+                id: productId,
+                name: document.getElementById('edit-product-name').value,
+                costPrice: parseInt(document.getElementById('edit-product-cost-price').value),
+                sellingPrice: parseInt(document.getElementById('edit-product-selling-price').value),
+                category: document.getElementById('edit-product-category').value,
+                description: document.getElementById('edit-product-description').value,
+                image: document.getElementById('edit-product-image').value,
+                features: document.getElementById('edit-product-features').value.split('\n').filter(f => f.trim()),
+                standardDelivery: document.getElementById('edit-product-standard-delivery').value,
+                return: document.getElementById('edit-product-return').value,
+                deliveryOptions: document.getElementById('edit-product-delivery-options').value
+            };
+            
+            filteredProducts = products;
+            customerFilteredProducts = products;
+            loadProducts();
+            loadCustomerProducts();
+            loadFeaturedProducts();
+            loadAdminProducts();
+            closeEditProduct();
+            
+            showMessage('পণ্যের তথ্য সফলভাবে আপডেট করা হয়েছে!', 'success');
+            autoSave();
+        }
+
+        function deleteProduct(productId) {
+            if (confirm('আপনি কি নিশ্চিত এই পণ্যটি মুছে ফেলতে চান?')) {
+                products = products.filter(p => p.id !== productId);
+                filteredProducts = products;
+                customerFilteredProducts = products;
+                loadProducts();
+                loadCustomerProducts();
+                loadFeaturedProducts();
+                loadAdminProducts();
+                showMessage('পণ্য সফলভাবে মুছে ফেলা হয়েছে!', 'success');
+                autoSave();
+            }
+        }
+
+        // Account Management
+        function handleAccountUpdate(e) {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('current-password').value;
+            const newUsername = document.getElementById('new-username').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            // Verify current password
+            if (currentPassword !== adminCredentials.password) {
+                showMessage('বর্তমান পাসওয়ার্ড ভুল!', 'error');
+                return;
+            }
+            
+            // Update username if provided
+            if (newUsername) {
+                adminCredentials.username = newUsername;
+            }
+            
+            // Update password if provided
+            if (newPassword) {
+                if (newPassword !== confirmPassword) {
+                    showMessage('নতুন পাসওয়ার্ড দুইবার একই লিখুন!', 'error');
+                    return;
+                }
+                
+                if (newPassword.length < 6) {
+                    showMessage('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে!', 'error');
+                    return;
+                }
+                
+                adminCredentials.password = newPassword;
+            }
+            
+            // Reset form
+            document.getElementById('admin-account-form').reset();
+            
+            showMessage('অ্যাডমিন অ্যাকাউন্ট সফলভাবে আপডেট করা হয়েছে!', 'success');
+            autoSave();
+        }
+
+        // Site Settings Functions
+        function loadSiteSettings() {
+            document.getElementById('site-name').textContent = siteSettings.siteName;
+            document.getElementById('site-title').textContent = siteSettings.siteName;
+            document.getElementById('site-slogan').textContent = siteSettings.siteSlogan;
+            document.getElementById('whatsapp-number').textContent = siteSettings.whatsapp;
+            
+            // Update hero welcome text
+            const heroWelcomeText = document.getElementById('hero-welcome-text');
+            if (heroWelcomeText) {
+                heroWelcomeText.textContent = `স্বাগতম ${siteSettings.siteName}-তে`;
+            }
+            
+            // Update meta description
+            const metaDescription = document.querySelector('meta[name="description"]');
+            if (metaDescription) {
+                metaDescription.setAttribute('content', `${siteSettings.siteName} - ${siteSettings.siteSlogan}`);
+            }
+        }
+
+        function updateAllSiteNameReferences() {
+            // This function ensures all site name references are updated
+            // Currently handled by loadSiteSettings(), but can be extended if needed
+            loadSiteSettings();
+            
+            // Additional checks for any other potential references
+            // Update page title dynamically
+            document.title = siteSettings.siteName;
+            
+            // Update any meta tags if they exist
+            const metaDescription = document.querySelector('meta[name="description"]');
+            if (metaDescription) {
+                metaDescription.setAttribute('content', `${siteSettings.siteName} - ${siteSettings.siteSlogan}`);
+            }
+        }
+
+        function loadAdminSettings() {
+            document.getElementById('site-name-input').value = siteSettings.siteName;
+            document.getElementById('site-slogan-input').value = siteSettings.siteSlogan;
+            document.getElementById('whatsapp-input').value = siteSettings.whatsapp;
+            document.getElementById('facebook-input').value = siteSettings.facebook;
+            document.getElementById('tiktok-input').value = siteSettings.tiktok;
+            document.getElementById('banner1-input').value = bannerImages[0];
+        }
+
+        function handleSiteSettings(e) {
+            e.preventDefault();
+            
+            siteSettings.siteName = document.getElementById('site-name-input').value;
+            siteSettings.siteSlogan = document.getElementById('site-slogan-input').value;
+            siteSettings.whatsapp = document.getElementById('whatsapp-input').value;
+            siteSettings.facebook = document.getElementById('facebook-input').value;
+            siteSettings.tiktok = document.getElementById('tiktok-input').value;
+            
+            loadSiteSettings();
+            updateAllSiteNameReferences();
+            showMessage('সাইট সেটিংস সফলভাবে আপডেট করা হয়েছে!', 'success');
+            autoSave();
+        }
+
+        // Banner and Model Functions
+        function loadBanners() {
+            const heroImage = document.querySelector('.hero-image img');
+            if (heroImage && bannerImages[0]) {
+                heroImage.src = bannerImages[0];
+            }
+        }
+
+        function loadModels() {
+            const modelCards = document.querySelectorAll('.model-card img');
+            modelCards.forEach((img, index) => {
+                if (modelImages[index]) {
+                    img.src = modelImages[index];
+                }
+            });
+        }
+
+        function handleBannerUpdate(e) {
+            e.preventDefault();
+            
+            const newBannerImage = document.getElementById('banner1-input').value;
+            if (newBannerImage) {
+                bannerImages[0] = newBannerImage;
+                loadBanners();
+                showMessage('ব্যানার সফলভাবে আপডেট করা হয়েছে!', 'success');
+                autoSave();
+            } else {
+                showMessage('অনুগ্রহ করে একটি ছবির লিংক দিন!', 'error');
+            }
+        }
+
+        function handleModelsUpdate(e) {
+            e.preventDefault();
+            
+            modelImages[0] = document.getElementById('model1-input').value || modelImages[0];
+            modelImages[1] = document.getElementById('model2-input').value || modelImages[1];
+            modelImages[2] = document.getElementById('model3-input').value || modelImages[2];
+            
+            loadModels();
+            showMessage('মডেল গ্যালারি সফলভাবে আপডেট করা হয়েছে!', 'success');
+            autoSave();
+        }
+
+        // Shopping Cart Functions
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            const existingItem = shoppingCart.find(item => item.id === productId);
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                shoppingCart.push({
+                    id: product.id,
+                    name: product.name,
+                    price: product.sellingPrice,
+                    quantity: 1
+                });
+            }
+            
+            updateCartDisplay();
+            autoSave();
+            showMessage(`${product.name} কার্টে যোগ করা হয়েছে!`, 'success');
+        }
+
+        function removeFromCart(productId) {
+            shoppingCart = shoppingCart.filter(item => item.id !== productId);
+            updateCartDisplay();
+            autoSave();
+            showMessage('পণ্য কার্ট থেকে সরানো হয়েছে!', 'success');
+        }
+
+        function updateCartQuantity(productId, newQuantity) {
+            const item = shoppingCart.find(item => item.id === productId);
+            if (item) {
+                if (newQuantity <= 0) {
+                    removeFromCart(productId);
+                } else {
+                    item.quantity = newQuantity;
+                    updateCartDisplay();
+                    autoSave();
+                }
+            }
+        }
+
+        function updateCartDisplay() {
+            const cartCount = document.getElementById('cart-count');
+            const totalItems = shoppingCart.reduce((sum, item) => sum + item.quantity, 0);
+            
+            if (cartCount) {
+                cartCount.textContent = totalItems;
+                cartCount.style.display = totalItems > 0 ? 'block' : 'none';
+            }
+        }
+
+        function showCart() {
+            if (shoppingCart.length === 0) {
+                showMessage('আপনার কার্ট খালি!', 'error');
+                return;
+            }
+            
+            const totalAmount = shoppingCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            let cartContent = `
+                <div class="cart-modal">
+                    <h2>আপনার কার্ট</h2>
+                    <div class="cart-items">
+            `;
+            
+            shoppingCart.forEach(item => {
+                cartContent += `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <h4>${item.name}</h4>
+                            <p>দাম: ৳${item.price} x ${item.quantity} = ৳${item.price * item.quantity}</p>
+                        </div>
+                        <div class="cart-item-actions">
+                            <button onclick="updateCartQuantity(${item.id}, ${item.quantity - 1})">-</button>
+                            <span>${item.quantity}</span>
+                            <button onclick="updateCartQuantity(${item.id}, ${item.quantity + 1})">+</button>
+                            <button onclick="removeFromCart(${item.id})" class="remove-btn">মুছুন</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            cartContent += `
+                    </div>
+                    <div class="cart-total">
+                        <h3>মোট: ৳${totalAmount}</h3>
+                    </div>
+                    <div class="cart-actions">
+                        <button onclick="orderMultipleProducts()" class="order-btn">অর্ডার করুন</button>
+                        <button onclick="clearCart()" class="clear-btn">কার্ট খালি করুন</button>
+                    </div>
+                </div>
+            `;
+            
+            // Show cart in modal
+            const modal = document.getElementById('cart-modal');
+            modal.querySelector('#cart-content').innerHTML = cartContent;
+            modal.style.display = 'block';
+        }
+
+        function clearCart() {
+            shoppingCart = [];
+            updateCartDisplay();
+            autoSave();
+            closeCart();
+            showMessage('কার্ট খালি করা হয়েছে!', 'success');
+        }
+
+        function closeCart() {
+            document.getElementById('cart-modal').style.display = 'none';
+        }
+
+        function orderMultipleProducts() {
+            if (shoppingCart.length === 0) {
+                showMessage('কার্ট খালি!', 'error');
+                return;
+            }
+            
+            const totalAmount = shoppingCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            let message = `মাল্টিপল পণ্য অর্ডার:\n\n`;
+            
+            shoppingCart.forEach(item => {
+                message += `📦 ${item.name}\n`;
+                message += `   দাম: ৳${item.price} x ${item.quantity} পিস = ৳${item.price * item.quantity}\n\n`;
+            });
+            
+            message += `💰 মোট মূল্য: ৳${totalAmount}\n\n`;
+            message += `অনুগ্রহ করে আপনার নাম, ফোন নাম্বার এবং ঠিকানা দিন।`;
+            
+            const whatsappNumber = siteSettings.whatsapp;
+            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+            
+            window.open(whatsappUrl, '_blank');
+            closeCart();
+            shoppingCart = [];
+            updateCartDisplay();
+            autoSave();
+            showMessage('আপনার অর্ডার পাঠানো হয়েছে! আমরা শীঘ্রই যোগাযোগ করব।', 'success');
+        }
+
+        // Order Function
+        function handleOrder(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const inputs = e.target.querySelectorAll('input, textarea');
+            
+            const name = inputs[0].value; // প্রথম input - নাম
+            const phone = inputs[1].value; // দ্বিতীয় input - ফোন
+            const address = inputs[2].value; // তৃতীয় input - ঠিকানা
+            const productName = inputs[3].value; // চতুর্থ input - পণ্যের নাম
+            const productDescription = inputs[4].value; // প্রথম textarea - পণ্যের বিবরণ
+            const locationUrl = inputs[5].value; // পঞ্চম input - লোকেশন URL (ঐচ্ছিক)
+            
+            const whatsappNumber = siteSettings.whatsapp;
+            let message = `নতুন অর্ডার:\n\nনাম: ${name}\nফোন: ${phone}\nঠিকানা: ${address}\nপণ্যের নাম: ${productName}\nপণ্যের বিবরণ: ${productDescription}`;
+            
+            if (locationUrl.trim()) {
+                message += `\nলোকেশন URL: ${locationUrl}`;
+            }
+            
+            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+            
+            window.open(whatsappUrl, '_blank');
+            
+            e.target.reset();
+            showMessage('আপনার অর্ডার পাঠানো হয়েছে! আমরা শীঘ্রই যোগাযোগ করব।', 'success');
+        }
+
+        // Utility Functions
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `${type}-message`;
+            messageDiv.textContent = message;
+            messageDiv.style.position = 'fixed';
+            messageDiv.style.top = '20px';
+            messageDiv.style.right = '20px';
+            messageDiv.style.zIndex = '9999';
+            messageDiv.style.maxWidth = '300px';
+            messageDiv.style.animation = 'slideInRight 0.3s ease';
+            
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => {
+                    document.body.removeChild(messageDiv);
+                }, 300);
+            }, 3000);
+        }
+
+        // Auto-save functionality
+        function autoSave() {
+            if (isAdminLoggedIn) {
+                localStorage.setItem('fashionflow_products', JSON.stringify(products));
+                localStorage.setItem('fashionflow_categories', JSON.stringify(categories));
+                localStorage.setItem('fashionflow_credentials', JSON.stringify(adminCredentials));
+                localStorage.setItem('fashionflow_settings', JSON.stringify(siteSettings));
+                localStorage.setItem('fashionflow_banners', JSON.stringify(bannerImages));
+                localStorage.setItem('fashionflow_models', JSON.stringify(modelImages));
+            }
+            // Always save cart data
+            localStorage.setItem('fashionflow_cart', JSON.stringify(shoppingCart));
+        }
+
+        // Load saved data
+        function loadSavedData() {
+            const savedProducts = localStorage.getItem('fashionflow_products');
+            const savedCategories = localStorage.getItem('fashionflow_categories');
+            const savedCredentials = localStorage.getItem('fashionflow_credentials');
+            const savedSettings = localStorage.getItem('fashionflow_settings');
+            const savedBanners = localStorage.getItem('fashionflow_banners');
+            const savedModels = localStorage.getItem('fashionflow_models');
+            const savedCart = localStorage.getItem('fashionflow_cart');
+            
+            if (savedProducts) {
+                products = JSON.parse(savedProducts);
+                filteredProducts = products;
+                customerFilteredProducts = products;
+            }
+            
+            if (savedCategories) {
+                categories = JSON.parse(savedCategories);
+            }
+            
+            if (savedCredentials) {
+                adminCredentials = JSON.parse(savedCredentials);
+            }
+            
+            if (savedSettings) {
+                siteSettings = JSON.parse(savedSettings);
+            }
+            
+            if (savedBanners) {
+                bannerImages = JSON.parse(savedBanners);
+            }
+            
+            if (savedModels) {
+                modelImages = JSON.parse(savedModels);
+            }
+            
+            if (savedCart) {
+                shoppingCart = JSON.parse(savedCart);
+            }
+        }
+
+        // Auto-save every 30 seconds
+        setInterval(autoSave, 30000);
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        // Keyboard shortcuts for admin
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+                e.preventDefault();
+                showAdminLogin();
+            }
+        });
+
+        // Review System Functions
+        function setupReviewForm() {
+            const reviewForm = document.getElementById('review-form');
+            const stars = document.querySelectorAll('.stars i');
+            
+            if (reviewForm) {
+                reviewForm.addEventListener('submit', handleReviewSubmit);
+            }
+            
+            // Star rating functionality
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    const rating = parseInt(this.dataset.rating);
+                    setStarRating(rating);
+                });
+            });
+        }
+
+        function setStarRating(rating) {
+            const stars = document.querySelectorAll('.stars i');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        }
+
+        function handleReviewSubmit(e) {
+            e.preventDefault();
+            
+            const reviewerName = document.getElementById('reviewer-name').value.trim();
+            const reviewComment = document.getElementById('review-comment').value.trim();
+            const activeStars = document.querySelectorAll('.stars i.active');
+            const rating = activeStars.length;
+            
+            if (!reviewerName || !reviewComment || rating === 0) {
+                showMessage('সব তথ্য পূরণ করুন এবং রেটিং দিন', 'error');
+                return;
+            }
+            
+            if (!currentProduct) {
+                showMessage('পণ্য খুঁজে পাওয়া যায়নি', 'error');
+                return;
+            }
+            
+            const review = {
+                id: Date.now(),
+                productId: currentProduct.id,
+                productName: currentProduct.name,
+                reviewerName: reviewerName,
+                rating: rating,
+                comment: reviewComment,
+                date: new Date().toLocaleDateString('bn-BD'),
+                timestamp: Date.now()
+            };
+            
+            reviews.push(review);
+            saveReviews();
+            loadProductReviews(currentProduct.id);
+            
+            // Reset form
+            document.getElementById('review-form').reset();
+            setStarRating(0);
+            
+            showMessage('আপনার রিভিউ সফলভাবে জমা হয়েছে!', 'success');
+        }
+
+        function loadProductReviews(productId) {
+            const reviewsList = document.getElementById('reviews-list');
+            const productReviews = reviews.filter(review => review.productId === productId);
+            
+            if (productReviews.length === 0) {
+                reviewsList.innerHTML = '<div class="no-reviews">এখনও কোন রিভিউ নেই। প্রথম রিভিউ দিন!</div>';
+                return;
+            }
+            
+            reviewsList.innerHTML = productReviews
+                .sort((a, b) => b.timestamp - a.timestamp)
+                .map(review => `
+                    <div class="review-item">
+                        <div class="review-header">
+                            <div class="reviewer-info">
+                                <div class="reviewer-avatar">${review.reviewerName.charAt(0)}</div>
+                                <div>
+                                    <div class="reviewer-name">${review.reviewerName}</div>
+                                    <div class="review-date">${review.date}</div>
+                                </div>
+                            </div>
+                            <div class="review-rating">
+                                ${'<i class="fas fa-star"></i>'.repeat(review.rating)}
+                            </div>
+                        </div>
+                        <div class="review-comment">${review.comment}</div>
+                    </div>
+                `).join('');
+        }
+
+        function loadAllReviews() {
+            const adminReviewsList = document.getElementById('admin-reviews-list');
+            if (!adminReviewsList) return;
+            
+            if (reviews.length === 0) {
+                adminReviewsList.innerHTML = '<div class="no-reviews">কোন রিভিউ নেই</div>';
+                return;
+            }
+            
+            adminReviewsList.innerHTML = reviews
+                .sort((a, b) => b.timestamp - a.timestamp)
+                .map(review => `
+                    <div class="review-admin-item">
+                        <div class="review-admin-header">
+                            <div>
+                                <div class="review-product-info">পণ্য: ${review.productName} (ID: ${review.productId})</div>
+                                <div class="reviewer-info">
+                                    <div class="reviewer-avatar">${review.reviewerName.charAt(0)}</div>
+                                    <div>
+                                        <div class="reviewer-name">${review.reviewerName}</div>
+                                        <div class="review-date">${review.date}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="review-rating">
+                                ${'<i class="fas fa-star"></i>'.repeat(review.rating)}
+                            </div>
+                        </div>
+                        <div class="review-comment">${review.comment}</div>
+                        <button class="delete-review-btn" onclick="deleteReview(${review.id})">রিভিউ মুছুন</button>
+                    </div>
+                `).join('');
+        }
+
+        function deleteReview(reviewId) {
+            if (confirm('আপনি কি এই রিভিউটি মুছতে চান?')) {
+                reviews = reviews.filter(review => review.id !== reviewId);
+                saveReviews();
+                loadAllReviews();
+                showMessage('রিভিউ সফলভাবে মুছে ফেলা হয়েছে', 'success');
+            }
+        }
+
+        function searchReviews() {
+            const searchTerm = document.getElementById('review-search').value.toLowerCase().trim();
+            
+            if (!searchTerm) {
+                loadAllReviews();
+                return;
+            }
+            
+            const filteredReviews = reviews.filter(review => 
+                review.reviewerName.toLowerCase().includes(searchTerm) ||
+                review.comment.toLowerCase().includes(searchTerm) ||
+                review.productName.toLowerCase().includes(searchTerm)
+            );
+            
+            const adminReviewsList = document.getElementById('admin-reviews-list');
+            
+            if (filteredReviews.length === 0) {
+                adminReviewsList.innerHTML = '<div class="no-reviews">কোন রিভিউ পাওয়া যায়নি</div>';
+                return;
+            }
+            
+            adminReviewsList.innerHTML = filteredReviews
+                .sort((a, b) => b.timestamp - a.timestamp)
+                .map(review => `
+                    <div class="review-admin-item">
+                        <div class="review-admin-header">
+                            <div>
+                                <div class="review-product-info">পণ্য: ${review.productName} (ID: ${review.productId})</div>
+                                <div class="reviewer-info">
+                                    <div class="reviewer-avatar">${review.reviewerName.charAt(0)}</div>
+                                    <div>
+                                        <div class="reviewer-name">${review.reviewerName}</div>
+                                        <div class="review-date">${review.date}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="review-rating">
+                                ${'<i class="fas fa-star"></i>'.repeat(review.rating)}
+                            </div>
+                        </div>
+                        <div class="review-comment">${review.comment}</div>
+                        <button class="delete-review-btn" onclick="deleteReview(${review.id})">রিভিউ মুছুন</button>
+                    </div>
+                `).join('');
+        }
+
+        function clearReviewSearch() {
+            document.getElementById('review-search').value = '';
+            loadAllReviews();
+        }
+
+        function saveReviews() {
+            localStorage.setItem('fashionflow_reviews', JSON.stringify(reviews));
+        }
+
+        function loadSavedReviews() {
+            const savedReviews = localStorage.getItem('fashionflow_reviews');
+            if (savedReviews) {
+                reviews = JSON.parse(savedReviews);
+            }
+        }
+
+        // Update auto-save to include reviews
+        function autoSave() {
+            if (isAdminLoggedIn) {
+                localStorage.setItem('fashionflow_products', JSON.stringify(products));
+                localStorage.setItem('fashionflow_categories', JSON.stringify(categories));
+                localStorage.setItem('fashionflow_credentials', JSON.stringify(adminCredentials));
+                localStorage.setItem('fashionflow_settings', JSON.stringify(siteSettings));
+                localStorage.setItem('fashionflow_banners', JSON.stringify(bannerImages));
+                localStorage.setItem('fashionflow_models', JSON.stringify(modelImages));
+                localStorage.setItem('fashionflow_reviews', JSON.stringify(reviews));
+            }
+        }
+
+        // Update loadSavedData to include reviews
+        function loadSavedData() {
+            const savedProducts = localStorage.getItem('fashionflow_products');
+            const savedCategories = localStorage.getItem('fashionflow_categories');
+            const savedCredentials = localStorage.getItem('fashionflow_credentials');
+            const savedSettings = localStorage.getItem('fashionflow_settings');
+            const savedBanners = localStorage.getItem('fashionflow_banners');
+            const savedModels = localStorage.getItem('fashionflow_models');
+            const savedReviews = localStorage.getItem('fashionflow_reviews');
+            
+            if (savedProducts) {
+                products = JSON.parse(savedProducts);
+                filteredProducts = products;
+                customerFilteredProducts = products;
+            }
+            
+            if (savedCategories) {
+                categories = JSON.parse(savedCategories);
+            }
+            
+            if (savedCredentials) {
+                adminCredentials = JSON.parse(savedCredentials);
+            }
+            
+            if (savedSettings) {
+                siteSettings = JSON.parse(savedSettings);
+            }
+            
+            if (savedBanners) {
+                bannerImages = JSON.parse(savedBanners);
+            }
+            
+            if (savedModels) {
+                modelImages = JSON.parse(savedModels);
+            }
+            
+            if (savedReviews) {
+                reviews = JSON.parse(savedReviews);
+            }
+        }
+
+        // ==================== FIREBASE FUNCTIONS ====================
+        
+        // Firebase initialization check
+        function initializeFirebase() {
+            if (window.firebase && window.firebaseServices) {
+                console.log('Firebase initialized successfully');
+                return true;
+            } else {
+                console.log('Firebase not initialized yet');
+                return false;
+            }
+        }
+
+        // Firebase Authentication Functions
+        async function firebaseSignUp(email, password) {
+            try {
+                if (!initializeFirebase()) return false;
+                
+                const { createUserWithEmailAndPassword } = window.firebaseServices;
+                const { auth } = window.firebase;
+                
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                showMessage('অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে!', 'success');
+                return userCredential.user;
+            } catch (error) {
+                console.error('Sign up error:', error);
+                showMessage(`রেজিস্ট্রেশন ত্রুটি: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function firebaseSignIn(email, password) {
+            try {
+                if (!initializeFirebase()) return false;
+                
+                const { signInWithEmailAndPassword } = window.firebaseServices;
+                const { auth } = window.firebase;
+                
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                showMessage('সফলভাবে লগইন হয়েছে!', 'success');
+                return userCredential.user;
+            } catch (error) {
+                console.error('Sign in error:', error);
+                showMessage(`লগইন ত্রুটি: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function firebaseSignOut() {
+            try {
+                if (!initializeFirebase()) return false;
+                
+                const { signOut } = window.firebaseServices;
+                const { auth } = window.firebase;
+                
+                await signOut(auth);
+                showMessage('সফলভাবে লগআউট হয়েছে!', 'success');
+                return true;
+            } catch (error) {
+                console.error('Sign out error:', error);
+                showMessage(`লগআউট ত্রুটি: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // Firebase Firestore Functions
+        async function saveProductToFirebase(product) {
+            try {
+                if (!initializeFirebase()) return false;
+                
+                const { collection, addDoc } = window.firebaseServices;
+                const { db } = window.firebase;
+                
+                const docRef = await addDoc(collection(db, "products"), {
+                    ...product,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                });
+                
+                console.log('Product saved to Firebase with ID:', docRef.id);
+                return docRef.id;
+            } catch (error) {
+                console.error('Error saving product to Firebase:', error);
+                showMessage(`পণ্য সংরক্ষণ ত্রুটি: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function loadProductsFromFirebase() {
+            try {
+                if (!initializeFirebase()) return false;
+                
+                const { collection, getDocs, query, orderBy } = window.firebaseServices;
+                const { db } = window.firebase;
+                
+                const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                const firebaseProducts = [];
+                querySnapshot.forEach((doc) => {
+                    firebaseProducts.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                
+                console.log('Loaded products from Firebase:', firebaseProducts.length);
+                return firebaseProducts;
+            } catch (error) {
+                console.error('Error loading products from Firebase:', error);
+                showMessage(`পণ্য লোড ত্রুটি: ${error.message}`, 'error');
+                return [];
+            }
+        }
+
+        async function updateProductInFirebase(productId, updatedProduct) {
+            try {
+                if (!initializeFirebase()) return false;
+                
+                const { doc, updateDoc } = window.firebaseServices;
+                const { db } = window.firebase;
+                
+                const productRef = doc(db, "products", productId);
+                await updateDoc(productRef, {
+                    ...updatedProduct,
+                    updatedAt: new Date()
+                });
+                
+                console.log('Product updated in Firebase:', productId);
+                return true;
+            } catch (error) {
+                console.error('Error updating product in Firebase:', error);
+                showMessage(`পণ্য আপডেট ত্রুটি: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function deleteProductFromFirebase(productId) {
+            try {
+                if (!initializeFirebase()) return false;
+                
+                const { doc, deleteDoc } = window.firebaseServices;
+                const { db } = window.firebase;
+                
+                const productRef = doc(db, "products", productId);
+                await deleteDoc(productRef);
+                
+                console.log('Product deleted from Firebase:', productId);
+                return true;
+            } catch (error) {
+                console.error('Error deleting product from Firebase:', error);
+                showMessage(`পণ্য মুছে ফেলার ত্রুটি: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // Firebase Storage Functions
+        async function uploadImageToFirebase(file) {
+            try {
+                if (!initializeFirebase()) return false;
+                
+                const { ref, uploadBytes, getDownloadURL } = window.firebaseServices;
+                const { storage } = window.firebase;
+                
+                const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
+                const snapshot = await uploadBytes(storageRef, file);
+                const downloadURL = await getDownloadURL(snapshot.ref);
+                
+                console.log('Image uploaded to Firebase Storage:', downloadURL);
+                return downloadURL;
+            } catch (error) {
+                console.error('Error uploading image to Firebase:', error);
+                showMessage(`ছবি আপলোড ত্রুটি: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // Enhanced product functions with Firebase
+        async function handleAddProductWithFirebase(e) {
+            e.preventDefault();
+            
+            const newProduct = {
+                id: Date.now(),
+                name: document.getElementById('product-name').value,
+                costPrice: parseInt(document.getElementById('product-cost-price').value),
+                sellingPrice: parseInt(document.getElementById('product-selling-price').value),
+                category: document.getElementById('product-category').value,
+                description: document.getElementById('product-description').value,
+                image: document.getElementById('product-image').value,
+                features: document.getElementById('product-features').value.split('\n').filter(f => f.trim()),
+                standardDelivery: document.getElementById('product-standard-delivery').value,
+                return: document.getElementById('product-return').value,
+                deliveryOptions: document.getElementById('product-delivery-options').value
+            };
+            
+            // Save to Firebase
+            const firebaseId = await saveProductToFirebase(newProduct);
+            if (firebaseId) {
+                newProduct.firebaseId = firebaseId;
+            }
+            
+            // Save to local storage as backup
+            products.push(newProduct);
+            filteredProducts = products;
+            customerFilteredProducts = products;
+            loadProducts();
+            loadCustomerProducts();
+            loadFeaturedProducts();
+            loadAdminProducts();
+            
+            // Reset form
+            document.getElementById('add-product-form').reset();
+            
+            showMessage('নতুন পণ্য সফলভাবে যোগ করা হয়েছে!', 'success');
+            autoSave();
+        }
+
+        // Initialize Firebase when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait for Firebase to initialize
+            setTimeout(() => {
+                if (initializeFirebase()) {
+                    console.log('Firebase is ready!');
+                    
+                    // Set up real-time listener for products
+                    if (window.firebaseServices && window.firebaseServices.onSnapshot) {
+                        const { collection, onSnapshot, query, orderBy } = window.firebaseServices;
+                        const { db } = window.firebase;
+                        
+                        const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+                        onSnapshot(q, (querySnapshot) => {
+                            const firebaseProducts = [];
+                            querySnapshot.forEach((doc) => {
+                                firebaseProducts.push({
+                                    id: doc.id,
+                                    ...doc.data()
+                                });
+                            });
+                            
+                            if (firebaseProducts.length > 0) {
+                                products = firebaseProducts;
+                                filteredProducts = products;
+                                customerFilteredProducts = products;
+                                loadProducts();
+                                loadCustomerProducts();
+                                loadFeaturedProducts();
+                                loadAdminProducts();
+                                console.log('Products updated in real-time:', firebaseProducts.length);
+                                showMessage('নতুন পণ্য আপডেট হয়েছে!', 'success');
+                            }
+                        });
+                    }
+                }
+            }, 1000);
+        });
+
+        // Enhanced product form with Firebase integration
+        function handleAddProductWithFirebase(e) {
+            e.preventDefault();
+            
+            const newProduct = {
+                id: Date.now(),
+                name: document.getElementById('product-name').value,
+                costPrice: parseInt(document.getElementById('product-cost-price').value),
+                sellingPrice: parseInt(document.getElementById('product-selling-price').value),
+                category: document.getElementById('product-category').value,
+                description: document.getElementById('product-description').value,
+                image: document.getElementById('product-image').value,
+                features: document.getElementById('product-features').value.split('\n').filter(f => f.trim()),
+                standardDelivery: document.getElementById('product-standard-delivery').value,
+                return: document.getElementById('product-return').value,
+                deliveryOptions: document.getElementById('product-delivery-options').value
+            };
+            
+            // Save to Firebase first
+            saveProductToFirebase(newProduct).then(firebaseId => {
+                if (firebaseId) {
+                    newProduct.firebaseId = firebaseId;
+                    console.log('Product saved to Firebase with ID:', firebaseId);
+                }
+                
+                // Also save to local storage as backup
+                products.push(newProduct);
+                filteredProducts = products;
+                customerFilteredProducts = products;
+                loadProducts();
+                loadCustomerProducts();
+                loadFeaturedProducts();
+                loadAdminProducts();
+                
+                // Reset form
+                document.getElementById('add-product-form').reset();
+                
+                showMessage('নতুন পণ্য সফলভাবে যোগ করা হয়েছে!', 'success');
+                autoSave();
+            }).catch(error => {
+                console.error('Error saving to Firebase:', error);
+                showMessage('Firebase-এ সংরক্ষণে সমস্যা হয়েছে, কিন্তু লোকাল স্টোরেজে সংরক্ষিত হয়েছে।', 'warning');
+                
+                // Still save to local storage
+                products.push(newProduct);
+                filteredProducts = products;
+                customerFilteredProducts = products;
+                loadProducts();
+                loadCustomerProducts();
+                loadFeaturedProducts();
+                loadAdminProducts();
+                
+                document.getElementById('add-product-form').reset();
+                showMessage('পণ্য লোকাল স্টোরেজে সংরক্ষিত হয়েছে।', 'success');
+                autoSave();
+            });
+        }
+
+        // Firebase authentication functions
+        async function firebaseLogin(email, password) {
+            try {
+                if (!initializeFirebase()) return false;
+                
+                const { signInWithEmailAndPassword } = window.firebaseServices;
+                const { auth } = window.firebase;
+                
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                showMessage('সফলভাবে লগইন হয়েছে!', 'success');
+                return userCredential.user;
+            } catch (error) {
+                console.error('Login error:', error);
+                showMessage(`লগইন ত্রুটি: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function firebaseRegister(email, password) {
+            try {
+                if (!initializeFirebase()) return false;
+                
+                const { createUserWithEmailAndPassword } = window.firebaseServices;
+                const { auth } = window.firebase;
+                
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                showMessage('অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে!', 'success');
+                return userCredential.user;
+            } catch (error) {
+                console.error('Registration error:', error);
+                showMessage(`রেজিস্ট্রেশন ত্রুটি: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // Image upload to Firebase Storage
+        async function uploadImageToFirebaseStorage(file) {
+            try {
+                if (!initializeFirebase()) return false;
+                
+                const { ref, uploadBytes, getDownloadURL } = window.firebaseServices;
+                const { storage } = window.firebase;
+                
+                const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
+                const snapshot = await uploadBytes(storageRef, file);
+                const downloadURL = await getDownloadURL(snapshot.ref);
+                
+                console.log('Image uploaded to Firebase Storage:', downloadURL);
+                return downloadURL;
+            } catch (error) {
+                console.error('Error uploading image to Firebase:', error);
+                showMessage(`ছবি আপলোড ত্রুটি: ${error.message}`, 'error');
+                return false;
+            }
+        }
+    </script>
+</body>
+</html>
